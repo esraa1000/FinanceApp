@@ -49,7 +49,7 @@ with chat_placeholder:
         div = f"""
 <div class="chat-row 
     {'' if chat.origin == 'ai' else 'row-reverse'}">
-    <img class="chat-icon" src="app/static/{
+    <img class="chat-icon" src="./static/{
         'ai_icon.png' if chat.origin == 'ai' 
                       else 'user_icon.png'}"
          width=32 height=32>
@@ -64,21 +64,22 @@ with chat_placeholder:
     for _ in range(3):
         st.markdown("")
 
-with prompt_placeholder:
-    st.markdown("**Chat**")
-    cols = st.columns((6, 1))
-    cols[0].text_input(
-        "Chat",
-        value="Hello bot",
-        label_visibility="collapsed",
-        key="human_prompt",
-    )
-    cols[1].form_submit_button(
-        "Submit", 
-        type="primary", 
-        on_click=on_click_callback, 
-    )
-
+with chat_placeholder:
+    for chat in st.session_state.history:
+        cols = st.columns([0.1, 0.9])  # Adjust column widths as needed
+        with cols[0]:
+            if chat.origin == "ai":
+                st.image("static/ai_icon.png", width=32)
+            else:
+                st.image("static/user_icon.png", width=32)
+        with cols[1]:
+            st.markdown(
+                f'<div class="chat-bubble {"ai-bubble" if chat.origin == "ai" else "human-bubble"}">'
+                f'{chat.message}'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+            
 # JavaScript for handling Enter key
 components.html("""
 <script>
