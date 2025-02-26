@@ -121,12 +121,45 @@ def news_page():
 if "page" not in st.session_state:
     st.session_state.page = "Chatbot"
 
-# Sidebar navigation
-st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ("Chatbot", "Stocks", "Tracker", "News"))
+# Custom CSS for the navigation bar
+st.markdown("""
+<style>
+.navbar {
+    display: flex;
+    justify-content: space-around;
+    background-color: #0E1117;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+.nav-item {
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 10px 20px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+.nav-item:hover {
+    background-color: #FF4B4B;
+}
+</style>
+""", unsafe_allow_html=True)
 
-# Update session state based on sidebar selection
-st.session_state.page = page
+# Horizontal navigation bar
+nav_cols = st.columns(4)
+with nav_cols[0]:
+    if st.button("🗨️ Chatbot"):
+        st.session_state.page = "Chatbot"
+with nav_cols[1]:
+    if st.button("📈 Stocks"):
+        st.session_state.page = "Stocks"
+with nav_cols[2]:
+    if st.button("📊 Tracker"):
+        st.session_state.page = "Tracker"
+with nav_cols[3]:
+    if st.button("📰 News"):
+        st.session_state.page = "News"
 
 # Display the selected page
 if st.session_state.page == "Chatbot":
@@ -137,10 +170,3 @@ elif st.session_state.page == "Tracker":
     tracker_page()
 elif st.session_state.page == "News":
     news_page()
-
-st.sidebar.markdown("""
-- 🗨️ **Chatbot**
-- 📈 **Stocks**
-- 📊 **Tracker**
-- 📰 **News**
-""")
