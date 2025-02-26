@@ -124,16 +124,18 @@ if "page" not in st.session_state:
 # Custom CSS for the navigation bar
 st.markdown("""
 <style>
+
 .navbar {
     display: flex;
     justify-content: space-around;
-    background-color: #0E1117;
+    background-color: #F0F2F6; /* Light grey background */
     padding: 10px;
     border-radius: 10px;
     margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
 }
 .nav-item {
-    color: white;
+    color: #333333; /* Dark text for contrast */
     font-size: 16px;
     cursor: pointer;
     padding: 10px 20px;
@@ -141,7 +143,8 @@ st.markdown("""
     transition: background-color 0.3s;
 }
 .nav-item:hover {
-    background-color: #FF4B4B;
+    background-color: #FF4B4B; /* Red hover effect */
+    color: white; /* White text on hover */
 }
 </style>
 """, unsafe_allow_html=True)
