@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Literal
 import streamlit as st
 from models import give_personal_advice, give_company_advice  
+import streamlit.components.v1 as components
 
 @dataclass
 class Message:
@@ -38,7 +39,7 @@ load_css()
 initialize_session_state()
 
 # UI Components
-st.title("Hello Custom CSS Chatbot 🤖")
+st.title("Ask Mahmoud 🤖")
 
 chat_placeholder = st.container()
 prompt_placeholder = st.form("chat-form")

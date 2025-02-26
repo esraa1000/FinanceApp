@@ -17,14 +17,19 @@
 }
 
 .ai-bubble {
-  background: rgb(240, 242, 246);
+  background: #1E1E1E; /* Dark Gray */
+  color: #FFFFFF; /* White Text */
   border-radius: 10px;
+  border: 1px solid #333333; /* Subtle Border */
+  padding: 10px 15px; /* Add Padding for Better Spacing */
 }
 
 .human-bubble {
-  background: linear-gradient(135deg, rgb(0, 178, 255) 0%, rgb(0, 106, 255) 100%); 
-  color: white;
+  background: linear-gradient(135deg, #FF4B4B 0%, #D83A3A 100%); /* Red Gradient */
+  color: white; /* White Text */
   border-radius: 20px;
+  padding: 10px 15px; /* Add Padding for Better Spacing */
+  border: none; /* Remove Border */
 }
 
 .chat-icon {
