@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Literal
 import streamlit as st
 from models import give_personal_advice, give_company_advice  
-import streamlit.components.v1 as components
+
 
 @dataclass
 class Message:
@@ -19,20 +19,37 @@ def initialize_session_state():
     if "history" not in st.session_state:
         st.session_state.history = []
 
+# def on_click_callback():
+#     human_prompt = st.session_state.human_prompt
+
+#     # Call your custom model functions based on the input
+#     if "personal" in human_prompt.lower():
+#         ai_response = give_personal_advice(human_prompt)  # Call personal advice function
+#     elif "company" in human_prompt.lower():
+#         ai_response = give_company_advice(human_prompt)  # Call company advice function
+#     else:
+#         ai_response = "Please specify whether you want personal or company advice."
+
+#     # Append the conversation to the history
+#     st.session_state.history.append(Message("human", human_prompt))
+#     st.session_state.history.append(Message("ai", ai_response))
 def on_click_callback():
     human_prompt = st.session_state.human_prompt
+    if human_prompt.strip():  # Check if the input is not empty
+        # Call your model functions here
+        if "personal" in human_prompt.lower():
+            ai_response = give_personal_advice(human_prompt)
+        elif "company" in human_prompt.lower():
+            ai_response = give_company_advice(human_prompt)
+        else:
+            ai_response = "Please specify whether you want personal or company advice."
 
-    # Call your custom model functions based on the input
-    if "personal" in human_prompt.lower():
-        ai_response = give_personal_advice(human_prompt)  # Call personal advice function
-    elif "company" in human_prompt.lower():
-        ai_response = give_company_advice(human_prompt)  # Call company advice function
-    else:
-        ai_response = "Please specify whether you want personal or company advice."
+        # Append the conversation to the history
+        st.session_state.history.append(Message("human", human_prompt))
+        st.session_state.history.append(Message("ai", ai_response))
 
-    # Append the conversation to the history
-    st.session_state.history.append(Message("human", human_prompt))
-    st.session_state.history.append(Message("ai", ai_response))
+        # Clear the input field
+        st.session_state.human_prompt = ""
 
 # Load CSS and initialize session state
 load_css()
@@ -64,22 +81,21 @@ with chat_placeholder:
     for _ in range(3):
         st.markdown("")
 
-with chat_placeholder:
-    for chat in st.session_state.history:
-        cols = st.columns([0.1, 0.9])  # Adjust column widths as needed
-        with cols[0]:
-            if chat.origin == "ai":
-                st.image("static/ai_icon.png", width=32)
-            else:
-                st.image("static/user_icon.png", width=32)
-        with cols[1]:
-            st.markdown(
-                f'<div class="chat-bubble {"ai-bubble" if chat.origin == "ai" else "human-bubble"}">'
-                f'{chat.message}'
-                f'</div>',
-                unsafe_allow_html=True
-            )
-            
+with prompt_placeholder:
+    st.markdown("**Chat**")
+    cols = st.columns((6, 1))
+    cols[0].text_input(
+        "Chat",
+        value=st.session_state.get("human_prompt", ""),  # Bind to session state
+        label_visibility="collapsed",
+        key="human_prompt",
+    )
+    cols[1].form_submit_button(
+        "Submit", 
+        type="primary", 
+        on_click=on_click_callback, 
+    )
+
 # JavaScript for handling Enter key
 components.html("""
 <script>
