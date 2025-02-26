@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Literal
 import streamlit as st
 from models import give_personal_advice, give_company_advice  
+import streamlit.components.v1 as components
 
 
 @dataclass
