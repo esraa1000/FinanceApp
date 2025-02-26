@@ -63,24 +63,15 @@ chat_placeholder = st.container()
 prompt_placeholder = st.form("chat-form")
 
 with chat_placeholder:
-    for chat in st.session_state.history:
-        div = f"""
-<div class="chat-row 
-    {'' if chat.origin == 'ai' else 'row-reverse'}">
-    <img class="chat-icon" src="static/{
-        'ai_icon.png' if chat.origin == 'ai' 
-                      else 'user_icon.png'}"
-         width=32 height=32>
-    <div class="chat-bubble
-    {'ai-bubble' if chat.origin == 'ai' else 'human-bubble'}">
-        &#8203;{chat.message}
-    </div>
-</div>
-        """
-        st.markdown(div, unsafe_allow_html=True)
-    
-    for _ in range(3):
-        st.markdown("")
+        for chat in st.session_state.history:
+        st.markdown(
+            f'<div class="chat-row {"" if chat.origin == "ai" else "row-reverse"}">'
+            f'<div class="chat-bubble {"ai-bubble" if chat.origin == "ai" else "human-bubble"}">'
+            f'{chat.message}'
+            f'</div>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
 
 with prompt_placeholder:
     st.markdown("**Chat**")
