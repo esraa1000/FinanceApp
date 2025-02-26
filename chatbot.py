@@ -121,46 +121,41 @@ def news_page():
 if "page" not in st.session_state:
     st.session_state.page = "Chatbot"
 
-# Custom CSS for the navigation bar
+# Custom CSS for the sidebar navigation
 st.markdown("""
 <style>
-
-.navbar {
-    display: flex;
-    justify-content: space-around;
+.sidebar .sidebar-content {
     background-color: #F0F2F6; /* Light grey background */
     padding: 10px;
     border-radius: 10px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
 }
-.nav-item {
+.sidebar .stButton button {
+    width: 100%;
+    text-align: left;
+    padding: 10px 20px;
+    margin: 5px 0;
+    border-radius: 5px;
+    background-color: transparent;
     color: #333333; /* Dark text for contrast */
     font-size: 16px;
-    cursor: pointer;
-    padding: 10px 20px;
-    border-radius: 5px;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, color 0.3s;
 }
-.nav-item:hover {
+.sidebar .stButton button:hover {
     background-color: #FF4B4B; /* Red hover effect */
     color: white; /* White text on hover */
 }
 </style>
 """, unsafe_allow_html=True)
 
-# Horizontal navigation bar
-nav_cols = st.columns(4)
-with nav_cols[0]:
+# Sidebar navigation
+with st.sidebar:
+    st.title("Navigation")
     if st.button("🗨️ Chatbot"):
         st.session_state.page = "Chatbot"
-with nav_cols[1]:
     if st.button("📈 Stocks"):
         st.session_state.page = "Stocks"
-with nav_cols[2]:
     if st.button("📊 Tracker"):
         st.session_state.page = "Tracker"
-with nav_cols[3]:
     if st.button("📰 News"):
         st.session_state.page = "News"
 
