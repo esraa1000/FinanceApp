@@ -1,11 +1,9 @@
-streamlit
 google-generativeai
 langchain
 langchain-google-genai
-yahoo-fin
 pandas
 matplotlib
 Pillow
 python-dotenv
 yfinance
-sklearn
+scikit-learn
