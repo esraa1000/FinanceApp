@@ -120,8 +120,65 @@ def chatbot_page():
 
 
 
-def stocks_page():
-    st.title('📈 Multi-Company Stock Analysis & Prediction')
+def stocks_company_page():
+    st.title('Company Stock Prediction')
+
+    uploaded_file = st.sidebar.file_uploader("Upload CSV file (Company Stock Data)", type=["csv"])
+
+    if uploaded_file:
+        df = pd.read_csv(uploaded_file)
+
+        # Ensure required columns exist
+        required_columns = {'Date', 'Close'}
+        if not required_columns.issubset(df.columns):
+            st.error(f"CSV must contain these columns: {', '.join(required_columns)}")
+        else:
+            df['Date'] = pd.to_datetime(df['Date'])
+            df.set_index('Date', inplace=True)
+
+            st.write("### Uploaded Company Data")
+            st.dataframe(df.head())
+
+            # Plot stock prices
+            st.write("### Stock Closing Price Over Time")
+            plt.figure(figsize=(10,5))
+            plt.plot(df.index, df['Close'], label="Closing Price", color='blue')
+            plt.xlabel('Date')
+            plt.ylabel('Closing Price')
+            plt.title('Stock Closing Prices')
+            plt.legend()
+            st.pyplot()
+
+            # Preprocess data
+            sequence_length = 100
+            x_train, y_train, scaler = preprocess_data(df.iloc[:-sequence_length])
+            x_test, y_test, _ = preprocess_data(df.iloc[-sequence_length:])
+
+            # Build and Train Model (instead of loading a pre-trained model)
+            model = build_lstm_model(input_shape=(x_train.shape[1], 1))
+            model, history = train_model(model, x_train, y_train, x_test, y_test)
+
+            # Predict
+            predicted_prices = predict_stock(model, scaler, df)
+
+            # Display Predictions
+            st.write("### Predicted Stock Prices")
+            plt.figure(figsize=(10,5))
+            plt.plot(df.index[-len(predicted_prices):], df['Close'].values[-len(predicted_prices):], label="Actual Prices", color='blue')
+            plt.plot(df.index[-len(predicted_prices):], predicted_prices, label="Predicted Prices", color='red', linestyle='dashed')
+            plt.xlabel('Date')
+            plt.ylabel('Stock Price')
+            plt.title('Actual vs. Predicted Stock Prices')
+            plt.legend()
+            st.pyplot()
+
+            st.write(f"### Predicted Next Closing Price: **${predicted_prices[-1]:.2f}**")
+
+
+
+
+def stocks_user_page():
+    st.title('📈 Multicompany Stock Analysis & Prediction')
 
     st.markdown("""
     This app allows users to:
@@ -249,8 +306,10 @@ with st.sidebar:
     st.title("Navigation")
     if st.button("🗨️ Chatbot"):
         st.session_state.page = "Chatbot"
-    if st.button("📈 Stocks"):
-        st.session_state.page = "Stocks"
+    if st.button("📈 Stocks (Company)"):
+        st.session_state.page = "Company_Stocks"
+    if st.button("📈 Stocks (User)"):
+        st.session_state.page = "User_Stocks"
     if st.button("📊 Tracker"):
         st.session_state.page = "Tracker"
     if st.button("📰 News"):
@@ -259,8 +318,10 @@ with st.sidebar:
 # Display the selected page
 if st.session_state.page == "Chatbot":
     chatbot_page()
-elif st.session_state.page == "Stocks":
-    stocks_page()
+elif st.session_state.page == "Company_Stocks":
+    stocks_company_page()
+elif st.session_state.page == "User_Stocks":
+    stocks_user_page()
 elif st.session_state.page == "Tracker":
     tracker_page()
 elif st.session_state.page == "News":
