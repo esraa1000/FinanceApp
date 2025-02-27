@@ -18,28 +18,42 @@ def chatbot_page():
           st.markdown(css, unsafe_allow_html=True)
 
   def initialize_session_state():
-      if "history" not in st.session_state:
-          st.session_state.history = []
+        if "history" not in st.session_state:
+            st.session_state.history = []
+        if "context" not in st.session_state:
+            st.session_state.context = None  # Can be "personal" or "company"
 
   def on_click_callback():
-      human_prompt = st.session_state.human_prompt
-      if human_prompt.strip():  # Check if the input is not empty
-          # Call your model functions here
-          if "personal" in human_prompt.lower():
-              ai_response = give_personal_advice(human_prompt)
-          elif "company" in human_prompt.lower():
-              ai_response = give_company_advice(human_prompt)
-          else:
-              ai_response = "Please specify whether you want personal or company advice."
-
-          # Append the conversation to the history
-          st.session_state.history.append(Message("human", human_prompt))
-          st.session_state.history.append(Message("ai", ai_response))
-
-          # Clear the input field
-          st.session_state.human_prompt = ""
-
-  # Load CSS and initialize session state
+          human_prompt = st.session_state.human_prompt
+          if human_prompt.strip():  # Check if the input is not empty
+              # Determine the context if not already set
+              if st.session_state.context is None:
+                  if "personal" in human_prompt.lower():
+                      st.session_state.context = "personal"
+                  elif "company" in human_prompt.lower():
+                      st.session_state.context = "company"
+                  else:
+                      # If no context is specified, ask for clarification
+                      ai_response = "Please specify whether you want personal or company advice."
+                      st.session_state.history.append(Message("human", human_prompt))
+                      st.session_state.history.append(Message("ai", ai_response))
+                      st.session_state.human_prompt = ""  # Clear the input field
+                      return  # Stop further processing until context is set
+    
+              # Generate AI response based on the context
+              if st.session_state.context == "personal":
+                  ai_response = give_personal_advice(human_prompt)
+              elif st.session_state.context == "company":
+                  ai_response = give_company_advice(human_prompt)
+    
+              # Append the conversation to the history
+              st.session_state.history.append(Message("human", human_prompt))
+              st.session_state.history.append(Message("ai", ai_response))
+    
+              # Clear the input field
+              st.session_state.human_prompt = ""
+    
+      # Load CSS and initialize session state
   load_css()
   initialize_session_state()
 
