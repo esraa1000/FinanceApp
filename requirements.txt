@@ -8,3 +8,5 @@ python-dotenv
 yfinance
 scikit-learn
 yahoo_fin
+tensorflow
+keras
