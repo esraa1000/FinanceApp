@@ -130,16 +130,18 @@ def stocks_company_page():
     if uploaded_file:
         df = pd.read_csv(uploaded_file)
 
-        # Ensure required columns exist
-        required_columns = {'Date', ' Close/Last'}
-        if not required_columns.issubset(df.columns):
-            st.error(f"CSV must contain these columns: {', '.join(required_columns)}")
-        else:
-            df['Date'] = pd.to_datetime(df['Date'])
-            df.set_index('Date', inplace=True)
+    # Find the correct closing price column
+        possible_close_names = ["Close", "Adj Close", "closing_price"]
+        close_column = next((col for col in possible_close_names if col in df.columns), None)
 
-            st.write("### Uploaded Company Data")
-            st.dataframe(df.head())
+        if close_column is None:
+            st.error(f"CSV must contain a closing price column (e.g., 'Close', 'Adj Close'). Found: {df.columns.tolist()}")
+            st.stop()
+
+        # Convert 'Date' to DateTime if exists
+        if "Date" in df.columns:
+            df["Date"] = pd.to_datetime(df["Date"])
+            df.set_index("Date", inplace=True)
 
             # Plot stock prices
             st.write("### Stock Closing Price Over Time")
