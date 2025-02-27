@@ -7,3 +7,5 @@ pandas
 matplotlib
 Pillow
 python-dotenv
+yfinance
+sklearn
