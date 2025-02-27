@@ -129,7 +129,7 @@ def stocks_company_page():
         df = pd.read_csv(uploaded_file)
 
         # Ensure required columns exist
-        required_columns = {'Date', 'Close'}
+        required_columns = {'Date', 'Close/Last'}
         if not required_columns.issubset(df.columns):
             st.error(f"CSV must contain these columns: {', '.join(required_columns)}")
         else:
