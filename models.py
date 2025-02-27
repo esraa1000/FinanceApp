@@ -11,7 +11,7 @@ from datetime import datetime
 
 
 # 🔹 Step 1: Set Up Gemini API Key
-os.environ["GOOGLE_API_KEY"] = "AIzaSyBxHDrSpG4vt9BNbTDFaJP-2HO5fsuB_nY"
+os.environ["GOOGLE_API_KEY"] = "AIzaSyDKCUK95yC7-KxkIZV_E_2hD0E9xaxb5V4"
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 # 🔹 Step 2: Initialize Gemini Models
