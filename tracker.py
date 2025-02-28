@@ -1,10 +1,10 @@
 # tracker.py
 
-def transactions():
-    global transactions_list
-    transactions_list = []
+# ✅ Initialize transactions_list globally
+transactions_list = []
 
 def add_transaction(transaction_type, amount, category, description):
+    global transactions_list  # ✅ Ensure it modifies the global list
     transactions_list.append({
         "Type": transaction_type,
         "Amount": amount,
@@ -13,6 +13,7 @@ def add_transaction(transaction_type, amount, category, description):
     })
 
 def get_balance():
+    global transactions_list  # ✅ Ensure it accesses the global list
     balance = 0
     for transaction in transactions_list:
         if transaction["Type"] == "Income":
@@ -20,20 +21,10 @@ def get_balance():
         elif transaction["Type"] == "Expense":
             balance -= transaction["Amount"]
     return balance
+
 def get_expenses():
-    global transactions_list
-
-    # Ensure transactions_list is initialized
-    if not isinstance(transactions_list, list):
-        print("Error: transactions_list is not a list or is None. Initializing it.")
-        transactions_list = []
-
-    # Debugging output
-    print("Transactions List:", transactions_list)
-
-    # Filter expenses safely
+    global transactions_list  # ✅ Ensure it accesses the global list
     return [t for t in transactions_list if t.get("Type") == "Expense"]
-
 
 def get_category_expenses():
     import pandas as pd
