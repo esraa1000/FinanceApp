@@ -246,7 +246,8 @@ def stocks_user_page():
             plt.ylabel('Closing Price (USD)', fontweight='bold')
             st.pyplot(plt)
 
-        
+        num_company = st.sidebar.slider('🔢 Number of Companies to Display', 1, len(selected_stocks), 5)
+
         if st.button('📊 Show Plots'):
             st.header('📌 Stock Closing Price')
             for i in selected_stocks[:num_company]:
