@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Literal
 import streamlit as st
 from models import give_personal_advice
+from company import give_company_advice
 import streamlit.components.v1 as components
 from stocks import build_lstm_model, preprocess_data, train_model, predict_stock
 import pandas as pd
@@ -126,7 +127,7 @@ def chatbot_company_page():
         human_prompt = st.session_state.human_prompt
         if human_prompt.strip():  # Check if the input is not empty
             # Generate AI response using personal financial advice function
-            ai_response = give_personal_advice(human_prompt)
+            ai_response = give_company_advice(human_prompt)
 
             # Append the conversation to the history
             st.session_state.history.append(Message("human", human_prompt))
