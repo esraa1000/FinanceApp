@@ -24,6 +24,8 @@ def get_balance():
 
 def get_expenses():
     global transactions_list  # ✅ Ensure it accesses the global list
+    if not isinstance(transactions_list, list):
+        return []
     return [t for t in transactions_list if t.get("Type") == "Expense"]
 
 def get_category_expenses():
