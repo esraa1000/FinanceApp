@@ -6,6 +6,7 @@ import streamlit.components.v1 as components
 from stocks import build_lstm_model, preprocess_data, train_model, predict_stock
 import pandas as pd
 import matplotlib.pyplot as plt
+import yfinance as yf
 
 
 
@@ -125,6 +126,13 @@ def chatbot_page():
 def stocks_company_page():
     st.title('Company Stock Prediction')
 
+    st.markdown("""
+    This app allows users to:
+    - Upload a CSV file containing stock data
+    - View closing price plots
+    - Get **LSTM-based stock predictions** for their companies.
+    """)
+
     uploaded_file = st.sidebar.file_uploader("Upload CSV file (Company Stock Data)", type=["csv"])
 
     if uploaded_file:
@@ -196,77 +204,71 @@ def stocks_user_page():
     - Get **LSTM-based stock predictions** for selected companies.
     """)
 
-    uploaded_file = st.sidebar.file_uploader("📂 Upload CSV file (with 'Symbol' column)", type=["csv"])
+    # User input for stock symbols
+    selected_stocks = st.sidebar.multiselect('✅ Select Stocks', ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'TSLA'], default=['AAPL', 'GOOGL'])
 
-    if uploaded_file:
-        df = pd.read_csv(uploaded_file)
-        if 'Symbol' not in df.columns:
-            st.error("❌ CSV must contain a 'Symbol' column")
-        else:
-            st.write("### Uploaded Company List")
-            st.dataframe(df)
+    if selected_stocks:
+        data = yf.download(
+            tickers=selected_stocks,
+            period="1y",  
+            interval="1d",
+            group_by='ticker',
+            auto_adjust=True,
+            prepost=True,
+            threads=True
+        )
 
-            selected_stocks = st.sidebar.multiselect('✅ Select Stocks', df['Symbol'], df['Symbol'])
+        def price_plot(symbol):
+            df_plot = pd.DataFrame(data[symbol].Close)
+            df_plot['Date'] = df_plot.index
+            plt.figure(figsize=(10, 5))
+            plt.fill_between(df_plot.Date, df_plot.Close, color='skyblue', alpha=0.3)
+            plt.plot(df_plot.Date, df_plot.Close, color='blue', alpha=0.8)
+            plt.xticks(rotation=45)
+            plt.title(f"{symbol} Closing Prices", fontweight='bold')
+            plt.xlabel('Date', fontweight='bold')
+            plt.ylabel('Closing Price (USD)', fontweight='bold')
+            st.pyplot(plt)
 
-            if selected_stocks:
-                data = yf.download(
-                    tickers=selected_stocks,
-                    period="1y",  
-                    interval="1d",
-                    group_by='ticker',
-                    auto_adjust=True,
-                    prepost=True,
-                    threads=True
-                )
+        num_company = st.sidebar.slider('🔢 Number of Companies to Display', 1, len(selected_stocks), 5)
+        
+        if st.button('📊 Show Plots'):
+            st.header('📌 Stock Closing Price')
+            for i in selected_stocks[:num_company]:
+                price_plot(i)
 
-                def price_plot(symbol):
-                    df_plot = pd.DataFrame(data[symbol].Close)
-                    df_plot['Date'] = df_plot.index
-                    plt.figure(figsize=(10, 5))
-                    plt.fill_between(df_plot.Date, df_plot.Close, color='skyblue', alpha=0.3)
-                    plt.plot(df_plot.Date, df_plot.Close, color='blue', alpha=0.8)
-                    plt.xticks(rotation=45)
-                    plt.title(f"{symbol} Closing Prices", fontweight='bold')
-                    plt.xlabel('Date', fontweight='bold')
-                    plt.ylabel('Closing Price (USD)', fontweight='bold')
-                    st.pyplot(plt)
+        def get_predictions(symbol):
+            df_stock = pd.DataFrame(data[symbol].Close).dropna()
+            train_size = int(len(df_stock) * 0.8)
+            df_train = df_stock[:train_size]
+            df_test = df_stock[train_size:]
 
-                num_company = st.sidebar.slider('🔢 Number of Companies to Display', 1, len(selected_stocks), 5)
-                
-                if st.button('📊 Show Plots'):
-                    st.header('📌 Stock Closing Price')
-                    for i in selected_stocks[:num_company]:
-                        price_plot(i)
+            x_train, y_train, scaler = preprocess_data(df_train)
+            x_test, y_test, _ = preprocess_data(df_test)
 
-                def get_predictions(symbol):
-                    df_stock = pd.DataFrame(data[symbol].Close).dropna()
-                    train_size = int(len(df_stock) * 0.8)
-                    df_train = df_stock[:train_size]
-                    df_test = df_stock[train_size:]
+            model = build_lstm_model(input_shape=(x_train.shape[1], 1))
+            trained_model, history = train_model(model, x_train, y_train, x_test, y_test)
 
-                    x_train, y_train, scaler = preprocess_data(df_train)
-                    x_test, y_test, _ = preprocess_data(df_test)
+            predictions = predict_stock(trained_model, scaler, df_test)
 
-                    model = build_lstm_model(input_shape=(x_train.shape[1], 1))
-                    trained_model, history = train_model(model, x_train, y_train, x_test, y_test)
+            return df_test.index, df_test['Close'].values, predictions
 
-                    predictions = predict_stock(trained_model, scaler, df_test)
+        if st.button('📈 Show Predictions'):
+            st.header('🔮 Stock Price Predictions')
+            for i in selected_stocks[:num_company]:
+                dates, actual, predicted = get_predictions(i)
+                plt.figure(figsize=(10, 5))
+                plt.plot(dates, actual, label="Actual Prices", color='blue')
+                plt.plot(dates, predicted, label="Predicted Prices", color='red', linestyle='dashed')
+                plt.xticks(rotation=45)
+                plt.xlabel("Date")
+                plt.ylabel("Stock Price (USD)")
+                plt.title(f"Predicted vs. Actual: {i}")
+                plt.legend()
+                st.pyplot(plt)
 
-                    return df_test.index, df_test['Close'].values, predictions
-
-                if st.button('📈 Show Predictions'):
-                    st.header('🔮 Stock Price Predictions')
-                    for i in selected_stocks[:num_company]:
-                        dates, actual, predicted = get_predictions(i)
-                        plt.figure(figsize=(10, 5))
-                        plt.plot(dates, actual, label="Actual Prices", color='blue')
-                        plt.plot(dates, predicted, label="Predicted Prices", color='red', linestyle='dashed')
-                        plt.xticks(rotation=45)
-                        plt.xlabel("Date")
-                        plt.ylabel("Stock Price (USD)")
-                        plt.title(f"Predicted vs. Actual: {i}")
-                        plt.legend()
-                        st.pyplot(plt)
+# Example usage
+stocks_user_page()
 
 
 
