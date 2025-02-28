@@ -369,57 +369,50 @@ def stocks_user_page():
                 st.pyplot(plt)
 
 
+
 def tracker_page():
-    st.title("Finance Tracker")
+    st.title("💰 Finance Tracker")
 
-    st.sidebar.header("Add Transaction")
-    transaction_type = st.sidebar.selectbox("Transaction Type", ["Income", "Expense"])
-    amount = st.sidebar.number_input("Amount", min_value=0.0, format="%.2f")
-    category = st.sidebar.selectbox("Category", ["Food", "Clothes", "Entertainment", "Other"])
-    description = st.sidebar.text_input("Description")
-    if st.sidebar.button("Add Transaction"):
+    # Input fields for transactions
+    st.header("Add Transaction")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        transaction_type = st.selectbox("Transaction Type", ["Income", "Expense"])
+        amount = st.number_input("Amount", min_value=0.0, format="%.2f")
+
+    with col2:
+        category = st.selectbox("Category", ["Food", "Clothes", "Entertainment", "Other"])
+        description = st.text_input("Description")
+
+    # Button to add transaction
+    if st.button("Add Transaction"):
         add_transaction(transaction_type, amount, category, description)
-        st.sidebar.success("Transaction added!")
+        st.success("Transaction added!")
 
-    st.header("All Transactions")
-    expenses = get_expenses()
-    if expenses:
-        st.table(expenses)
-    else:
-        st.write("No transactions yet.")
+    # Button to show expenses
+    if "show_expenses" not in st.session_state:
+        st.session_state.show_expenses = False
 
-    st.header("Expenses")
-    if expenses:
-        st.table(expenses)
+    if st.button("Show Expenses"):
+        st.session_state.show_expenses = True  # Show expenses when button is clicked
+
+    if st.session_state.show_expenses:
+        display_expenses()
+    
+    def display_expenses():
+        expenses = get_expenses() or []
         
-        # Get expense distribution
-        category_expenses = get_category_expenses()
-        if category_expenses is not None:
-            st.subheader("Expense Distribution by Category")
-            fig, ax = plt.subplots()
-            wedges, texts, autotexts = ax.pie(category_expenses, labels=category_expenses.index, autopct='%1.1f%%', startangle=90, wedgeprops={'edgecolor': 'white'}, pctdistance=0.85)
-            center_circle = plt.Circle((0, 0), 0.70, fc='white')
-            fig.gca().add_artist(center_circle)
-            ax.set_title("Expenses by Category")
-            st.pyplot(fig)
-            
-            # Individual category doughnuts
-            for category in ["Food", "Clothes", "Entertainment", "Other"]:
-                category_data = [t for t in expenses if t["Category"] == category]
-                if category_data:
-                    st.subheader(f"{category} Expenses")
-                    fig, ax = plt.subplots()
-                    df = pd.DataFrame(category_data)
-                    wedges, texts, autotexts = ax.pie(df["Amount"], labels=df["Description"], autopct='%1.1f%%', startangle=90, wedgeprops={'edgecolor': 'white'}, pctdistance=0.85)
-                    center_circle = plt.Circle((0, 0), 0.70, fc='white')
-                    fig.gca().add_artist(center_circle)
-                    ax.set_title(f"{category} Expense Breakdown")
-                    st.pyplot(fig)
-    else:
-        st.write("No expenses recorded.")
+        st.header("📊 All Transactions")
+        if expenses:
+            st.table(expenses)
+        else:
+            st.write("No expenses recorded.")
 
-    st.header("Balance")
-    st.write(f"Current Balance: ${get_balance():.2f}")
+        st.header("💵 Balance")
+        st.write(f"Current Balance: **${get_balance():.2f}**")
+
+
 
 def news_page():
     st.title("News")
