@@ -20,9 +20,20 @@ def get_balance():
         elif transaction["Type"] == "Expense":
             balance -= transaction["Amount"]
     return balance
-
 def get_expenses():
-    return [t for t in transactions_list if t["Type"] == "Expense"]
+    global transactions_list
+
+    # Ensure transactions_list is initialized
+    if not isinstance(transactions_list, list):
+        print("Error: transactions_list is not a list or is None. Initializing it.")
+        transactions_list = []
+
+    # Debugging output
+    print("Transactions List:", transactions_list)
+
+    # Filter expenses safely
+    return [t for t in transactions_list if t.get("Type") == "Expense"]
+
 
 def get_category_expenses():
     import pandas as pd
