@@ -1,17 +1,28 @@
 from dataclasses import dataclass
 from typing import Literal
 import streamlit as st
-from models import give_personal_advice
-#from company import give_company_advice
+from pages.user_chatbot import give_personal_advice
+#from pages.company import give_company_advice
 import streamlit.components.v1 as components
-from stocks import build_lstm_model, preprocess_data, train_model, predict_stock
+from pages.stocks import build_lstm_model, preprocess_data, train_model, predict_stock
 import pandas as pd
 import matplotlib.pyplot as plt
 import yfinance as yf
-from tracker import add_transaction, get_balance, get_expenses
+from pages.tracker import add_transaction, get_balance, get_expenses
+from auth import app as auth_app
 
 
+# Initialize session state for page navigation
+if "page" not in st.session_state:
+    st.session_state.page = "Chatbot_User"
 
+# Main App Flow
+if not st.session_state.get('signedout'):
+    auth_app()  # Show login/signup page
+else:
+    # Get account type from session state
+    account_type = st.session_state.get('account_type', 'individual')
+    
 
 
 def chatbot_user_page():
@@ -450,34 +461,46 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Sidebar navigation
-with st.sidebar:
-    st.title("Navigation")
-    if st.button("🗨️ Chatbot"):
-        st.session_state.page = "Chatbot_User"
-    if st.button("🗨️ Chatbot (Company)"):
-        st.session_state.page = "Chatbot_Company"
-    if st.button("📈 Stocks (Company)"):
-        st.session_state.page = "Company_Stocks"
-    if st.button("📈 Stocks (User)"):
-        st.session_state.page = "User_Stocks"
-    if st.button("📊 Tracker"):
-        st.session_state.page = "Tracker"
-    if st.button("📰 News"):
-        st.session_state.page = "News"
+st.sidebar.title("Navigation")
 
-# Display the selected page
+# Company-specific navigation
+if account_type == 'company':
+    page_options = {
+        "🗨️ Chatbot (Company)": "Chatbot_Company",
+        "📈 Stocks (Company)": "Company_Stocks",
+        "📊 Business Tracker": "Tracker",
+        "📰 Industry News": "News"
+    }
+else:
+    # Individual navigation
+    page_options = {
+        "🗨️ Personal Chatbot": "Chatbot_User",
+        "📈 Personal Stocks": "User_Stocks",
+        "💰 Expense Tracker": "Tracker",
+        "📰 Personal Finance News": "News"
+    }
+
+selected = st.sidebar.radio("Go to", list(page_options.keys()))
+st.session_state.page = page_options[selected]
+
+# Page routing
 if st.session_state.page == "Chatbot_User":
     chatbot_user_page()
-if st.session_state.page == "Chatbot_Company":
+elif st.session_state.page == "Chatbot_Company":
     chatbot_company_page()
 elif st.session_state.page == "Company_Stocks":
     stocks_company_page()
 elif st.session_state.page == "User_Stocks":
     stocks_user_page()
 elif st.session_state.page == "Tracker":
-    tracker_page()
+    tracker_page(account_type)
 elif st.session_state.page == "News":
-    news_page()
+    news_page(account_type)
+
+# Logout button
+if st.sidebar.button("🚪 Logout"):
+    st.session_state.clear()
+    st.rerun()
 
 
 
