@@ -18,7 +18,7 @@ db = firestore.client()
 # Initialize Google OAuth2 client
 client_id = "102420858709-8mtqobjd6ss9pk7cpar5h90ce5tc2n35.apps.googleusercontent.com"
 client_secret = "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"
-redirect_url = "https://financeapp-jlmxn8appqn4ndxsrxchjf8.streamlit.app/"  # Your redirect URL
+redirect_url = "https://financeapp-l4zi55htjiv9vxwdwvgihv.streamlit.app/" 
 
 client = GoogleOAuth2(client_id=client_id, client_secret=client_secret)
 
