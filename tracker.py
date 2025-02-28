@@ -22,15 +22,15 @@ def get_balance():
             balance -= transaction["Amount"]
     return balance
 
-def get_expenses():
-    global transactions_list  # ✅ Ensure it accesses the global list
-    if not isinstance(transactions_list, list):
-        return []
-    return [t for t in transactions_list if t.get("Type") == "Expense"]
+# def get_expenses():
+#     global transactions_list  # ✅ Ensure it accesses the global list
+#     if not isinstance(transactions_list, list):
+#         return []
+#     return [t for t in transactions_list if t.get("Type") == "Expense"]
 
-def get_category_expenses():
-    import pandas as pd
-    df = pd.DataFrame(get_expenses())
-    if not df.empty:
-        return df.groupby("Category")["Amount"].sum()
-    return None
+# def get_category_expenses():
+#     import pandas as pd
+#     df = pd.DataFrame(get_expenses())
+#     if not df.empty:
+#         return df.groupby("Category")["Amount"].sum()
+#     return None
