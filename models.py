@@ -9,270 +9,80 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from datetime import datetime
 
-from PyPDF2 import PdfReader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-import os
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain.vectorstores import FAISS
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.chains.question_answering import load_qa_chain
-from langchain.prompts import PromptTemplate
-from langchain.docstore.document import Document
-from langchain.memory import ConversationBufferMemory  # For chat history management
-import yfinance as yf  # For live stock data
 
-
-#function: give_personal_financial_advice(user_question)
+# 🔹 Step 1: Set Up Gemini API Key
 os.environ["GOOGLE_API_KEY"] = "AIzaSyDKCUK95yC7-KxkIZV_E_2hD0E9xaxb5V4"
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
-# Initialize ConversationBufferMemory for chat history
+# 🔹 Step 2: Initialize Gemini Models
 personal_model = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
-
-personal_memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-
-# Function to extract text from PDFs
-def get_pdf_text(pdf_docs):
-    """
-    Extract text from a list of PDF files.
-    """
-    text = ""
-    for pdf in pdf_docs:
-        pdf_reader = PdfReader(pdf)
-        for page in pdf_reader.pages:
-            text += page.extract_text()
-    return text
-
-# Function to split text into chunks
-def get_text_chunks(text):
-    """
-    Split text into chunks.
-    """
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-    chunks = text_splitter.split_text(text)
-    return chunks
-
-# Function to create a vector store
-def get_vector_store(chunks):
-    """
-    Create a vector store from text chunks and save it to disk.
-    """
-    documents = [Document(page_content=chunk) for chunk in chunks]  # Wrap chunks in Document objects
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=os.getenv("GOOGLE_API_KEY")) # Pass the API key here
-    vector_store = FAISS.from_documents(documents, embedding=embeddings)
-    vector_store.save_local("fiess_persona_index")
-
-# Function to create a conversational chain
-def get_conversational_chain():
-    """
-    Create a conversational chain for question answering.
-    """
-    prompt_template = """ 
-    You are a financial expert with expertise in budgeting, saving, investing, debt management, and wealth-building strategies. 
-    Use this context to generate suitable answers. If you cannot find the answer in the context, use your own knowledge.
-    Ensure that your answers are easy to understand and concise.
-
-    🔹 **Context**: \n{context}\n
-    🔹 **Chat History**: \n{chat_history}\n
-    🔹 **Question**: \n{question}\n
-
-    Answer: 
-    """
-
-    # Load your custom-tuned model here
-    custom_model_name = "gemini-2.0-flash"  # Your custom model name
-    model = ChatGoogleGenerativeAI(model=custom_model_name, google_api_key=os.getenv("GOOGLE_API_KEY"))  # Pass the API key here
-
-    prompt = PromptTemplate(template=prompt_template, input_variables=["context", "chat_history", "question"])
-
-    chain = load_qa_chain(model, chain_type="stuff", prompt=prompt)
-    return chain
-
-# Function to give personal financial advice
-def give_personal_financial_advice(user_question):
-    """
-    Query the vector store and generate a response using the custom model.
-    """
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=os.getenv("GOOGLE_API_KEY"))  # Pass the API key here
-    
-    # Allow dangerous deserialization since you trust the source of the FAISS index
-    new_db = FAISS.load_local("fiess_persona_index", embeddings, allow_dangerous_deserialization=True)
-    
-    # Retrieve relevant documents
-    docs = new_db.similarity_search(user_question)
-    
-    # Get the conversational chain
-    chain = get_conversational_chain()
-    
-    # Load chat history from memory
-    chat_history = personal_memory.load_memory_variables({}).get("chat_history", "")
-    
-    # Generate the response
-    response = chain(
-        {
-            "input_documents": docs,
-            "chat_history": chat_history,  # Pass chat history from memory
-            "question": user_question,
-        },
-        return_only_outputs=True,
-    )
-
-    # Save the interaction to memory
-    personal_memory.save_context({"input": user_question}, {"output": response.get("output_text", "No response generated.")})
-
-    return response.get("output_text", "No response generated.")
-
-# Function to prepare the vector database
-def prepare_the_vector_db(pdf_files):
-    """
-    Test the entire pipeline with multiple PDF files.
-    """
-    # Step 1: Read text from all PDFs
-    text = get_pdf_text(pdf_files)
-    print("Extracted text from all PDFs.")
-    
-    # Step 2: Split text into chunks
-    chunks = get_text_chunks(text)
-    print("Number of chunks:", len(chunks))
-    
-    # Step 3: Create vector store
-    get_vector_store(chunks)
-    assert os.path.exists("fiess_persona_index"), "FAISS index not created!"
-    print("FAISS index created successfully.")
-
-# List of PDF files to process
-pdf_files = [
-    "the-intelligent-investor.pdf",  # Replace with your PDF file paths
-    "The Total Money Makeover - Dave Ramsey.pdf",
-    "kotobati - The Richest Man in Babylon.pdf"
-]
-
-# Run the pipeline with multiple PDFs
-prepare_the_vector_db(pdf_files)
-
-# Example usage
-response = give_personal_financial_advice("What is the best way to save money?")
-print(response)
-
-
-### here is the end################################################################################################################################
-
-#function: give_company_advice(query, stock_symbol=None)
-# Initialize the Google Generative AI model
 company_model = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
+graph_analyzer_model = genai.GenerativeModel("gemini-2.0-flash")
 
-# Initialize ConversationBufferMemory for chat history
+# 🔹 Step 3: Memory for Context-Aware Conversations
+personal_memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 company_memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
-# Define the prompt template for financial advice
+# 🔹 Step 4: Structured Prompts
+personal_financial_advice_prompt = PromptTemplate(
+    input_variables=["query", "chat_history"],
+    template=""" 
+    You are a financial advisor with expertise in budgeting, saving, investing, debt management, and wealth-building strategies.
+
+    🔹 **User's Previous Conversations**: {chat_history}
+    🔹 **User's Current Question**: {query}
+
+    Based on the user's past inquiries and the current question, provide **clear, actionable, and practical financial advice** that can be applied broadly.
+    Avoid generic responses and instead offer **specific, structured, and insightful guidance** tailored to common financial situations.
+    """
+)
+
+
 company_advice_prompt = PromptTemplate(
-    input_variables=["query", "chat_history", "live_data", "context"],
+    input_variables=["query", "chat_history", "live_data"],
     template=""" 
     You are a financial advisor specializing in stock markets and economic trends.
     
     🔹 **Live Stock Data**: {live_data}
     🔹 **User's Previous Conversations**: {chat_history}
-    🔹 **Relevant Context**: {context}
     🔹 **User's Current Question**: {query}
 
     Based on this, provide **accurate, actionable, and data-driven financial advice**.
-    Avoid generic responses and ensure rational market analysis and make your answer easy to understand and not too long. if you could not find the answer in the context you must use your knowledge to answer the question 
+    Avoid generic responses and ensure rational market analysis.
     """
 )
 
-# Function to fetch live financial data using yfinance
+# 🔹 Step 5: Define Function to Fetch Live Stock Data
 def get_live_financial_data(stock_symbol):
-    """
-    Fetches real-time stock price for a given symbol using yfinance.
-    """
+    """Fetches real-time stock price for a given symbol."""
     try:
-        stock = yf.Ticker(stock_symbol)
-        price = stock.history(period="1d")["Close"].iloc[-1]
+        price = si.get_live_price(stock_symbol)
         return f"The current stock price of {stock_symbol} is ${price:.2f}."
-    except Exception as e:
-        return f"Live financial data is currently unavailable. Error: {str(e)}"
+    except Exception:
+        return "Live financial data is currently unavailable."
 
-# Function to extract text from PDFs
-def get_pdf_text(pdf_docs):
-    """
-    Extract text from a list of PDF files.
-    """
-    text = ""
-    for pdf in pdf_docs:
-        pdf_reader = PdfReader(pdf)
-        for page in pdf_reader.pages:
-            text += page.extract_text()
-    return text
+# 🔹 Step 6: Define Functions to Generate Advice
+def give_personal_advice(query):
+    """Returns personalized advice based on user query and chat history."""
+    prompt = personal_financial_advice_prompt.format(
+        query=query,
+        chat_history=personal_memory.load_memory_variables({}).get("chat_history", "")
+    )
+    response = personal_model.invoke(prompt)
+    personal_memory.save_context({"query": query}, {"response": response.content})
+    return response.content
 
-# Function to split text into chunks
-def get_text_chunks(text):
-    """
-    Split text into chunks.
-    """
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    chunks = text_splitter.split_text(text)
-    return chunks
-
-# Function to create a vector store
-def get_vector_store(chunks):
-    """
-    Create a vector store from text chunks and save it to disk.
-    """
-    documents = [Document(page_content=chunk) for chunk in chunks]  # Wrap chunks in Document objects
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=os.getenv("GOOGLE_API_KEY"))
-    vector_store = FAISS.from_documents(documents, embedding=embeddings)
-    vector_store.save_local("fiess_company_index")
-
-# Function to give financial advice
 def give_company_advice(query, stock_symbol=None):
-    """
-    Returns financial advice based on user query and optional stock data.
-    """
-    # Fetch live financial data if a stock symbol is provided
+    """Returns financial advice based on user query and optional stock data."""
     live_data = get_live_financial_data(stock_symbol) if stock_symbol else "No stock symbol provided."
-
-    # Load the vector store
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=os.getenv("GOOGLE_API_KEY"))
-    vector_store = FAISS.load_local("fiess_company_index", embeddings, allow_dangerous_deserialization=True)
-
-    # Retrieve relevant documents from the vector store
-    relevant_docs = vector_store.similarity_search(query, k=3)  # Retrieve top 3 relevant documents
-    context = "\n".join([doc.page_content for doc in relevant_docs])  # Combine documents into a single context string
-
-    # Format the prompt with the query, chat history, live data, and context
     prompt = company_advice_prompt.format(
         query=query,
         chat_history=company_memory.load_memory_variables({}).get("chat_history", ""),
-        live_data=live_data,
-        context=context
+        live_data=live_data
     )
-
-    # Invoke the model to generate a response
     response = company_model.invoke(prompt)
-
-    # Save the interaction to memory
     company_memory.save_context({"query": query}, {"response": response.content})
-
     return response.content
-
-
-# List of PDF files to process
-pdf_files = [
-  "m6K5J3_corporate finance 5.pdf",
-  "m6K5J3_corporate finance 5.pdf",
-  "Quantitative Financial Risk Management - 2015 - Zopounidis.pdf",
-  "principles-of-corporate-finance-finance-insurance-and-real-estate-10th-ed-10nbsped-0073530735-9780073530734_compress.pdf"
-]
-
-# Run the pipeline with multiple PDFs
-prepare_the_vector_db(pdf_files)
-
-
-
-
-#####################################################################################
-
-
-graph_analyzer_model = genai.GenerativeModel("gemini-2.0-flash")
 
 
 
