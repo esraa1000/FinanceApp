@@ -1,10 +1,7 @@
-# tracker.py
-
-# ✅ Initialize transactions_list globally
 transactions_list = []
 
 def add_transaction(transaction_type, amount, category, description):
-    global transactions_list  # ✅ Ensure it modifies the global list
+    global transactions_list
     transactions_list.append({
         "Type": transaction_type,
         "Amount": amount,
@@ -13,7 +10,7 @@ def add_transaction(transaction_type, amount, category, description):
     })
 
 def get_balance():
-    global transactions_list  # ✅ Ensure it accesses the global list
+    global transactions_list
     balance = 0
     for transaction in transactions_list:
         if transaction["Type"] == "Income":
@@ -22,15 +19,7 @@ def get_balance():
             balance -= transaction["Amount"]
     return balance
 
-# def get_expenses():
-#     global transactions_list  # ✅ Ensure it accesses the global list
-#     if not isinstance(transactions_list, list):
-#         return []
-#     return [t for t in transactions_list if t.get("Type") == "Expense"]
-
-# def get_category_expenses():
-#     import pandas as pd
-#     df = pd.DataFrame(get_expenses())
-#     if not df.empty:
-#         return df.groupby("Category")["Amount"].sum()
-#     return None
+# ✅ Uncommented and corrected get_expenses()
+def get_expenses():
+    global transactions_list
+    return [t for t in transactions_list if t.get("Type") == "Expense"]

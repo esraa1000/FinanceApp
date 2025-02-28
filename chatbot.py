@@ -373,7 +373,20 @@ def stocks_user_page():
 def tracker_page():
     st.title("💰 Finance Tracker")
 
-    # Input fields for transactions
+    # Define display_expenses() FIRST to avoid UnboundLocalError
+    def display_expenses():
+        expenses = get_expenses() or []  # Ensure get_expenses is imported
+        
+        st.header("📊 All Transactions")
+        if expenses:
+            st.table(expenses)
+        else:
+            st.write("No transactions recorded.")
+        
+        st.header("💵 Balance")
+        st.write(f"Current Balance: **${get_balance():.2f}**")
+
+    # --- Input fields and buttons below ---
     st.header("Add Transaction")
     col1, col2 = st.columns(2)
     
@@ -385,32 +398,19 @@ def tracker_page():
         category = st.selectbox("Category", ["Food", "Clothes", "Entertainment", "Other"])
         description = st.text_input("Description")
 
-    # Button to add transaction
     if st.button("Add Transaction"):
         add_transaction(transaction_type, amount, category, description)
         st.success("Transaction added!")
 
-    # Button to show expenses
+    # Handle "Show Expenses" button state
     if "show_expenses" not in st.session_state:
         st.session_state.show_expenses = False
 
     if st.button("Show Expenses"):
-        st.session_state.show_expenses = True  # Show expenses when button is clicked
+        st.session_state.show_expenses = not st.session_state.show_expenses  # Toggle visibility
 
     if st.session_state.show_expenses:
-        display_expenses()
-    
-    def display_expenses():
-        expenses = get_expenses() or []
-        
-        st.header("📊 All Transactions")
-        if expenses:
-            st.table(expenses)
-        else:
-            st.write("No expenses recorded.")
-
-        st.header("💵 Balance")
-        st.write(f"Current Balance: **${get_balance():.2f}**")
+        display_expenses()  # Now correctly defined above
 
 
 
