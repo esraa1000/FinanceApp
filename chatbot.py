@@ -192,6 +192,18 @@ def stocks_company_page():
             st.write(f"### Predicted Next Closing Price: **${predicted_prices[-1]:.2f}**")
 
 
+def fetch_stock_data(tickers, period="1y", interval="1d"):
+    data = yf.download(
+        tickers=tickers,
+        period=period,
+        interval=interval,
+        group_by='ticker',
+        auto_adjust=True,
+        prepost=True,
+        threads=True
+    )
+    return data
+
 def stocks_user_page():
     st.title('📈 Multicompany Stock Analysis & Prediction')
 
@@ -206,14 +218,20 @@ def stocks_user_page():
     selected_stocks = st.sidebar.multiselect('✅ Select Stocks', ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'TSLA'], default=['AAPL', 'GOOGL'])
 
     if selected_stocks:
-        data = yf.download(
-            tickers=selected_stocks,
-            period="1y",  
-            interval="1d",
-            group_by='ticker',
-            auto_adjust=True,
-            prepost=True,
-            threads=True
+        # Fetch stock data
+        data = fetch_stock_data(selected_stocks)
+
+        # Display the data
+        st.header('Stock Data')
+        st.write(data)
+
+        # Download button for CSV
+        csv = data.to_csv().encode('utf-8')
+        st.download_button(
+            label="📥 Download Stock Data as CSV",
+            data=csv,
+            file_name='stock_data.csv',
+            mime='text/csv',
         )
 
         def price_plot(symbol):
@@ -228,7 +246,6 @@ def stocks_user_page():
             plt.ylabel('Closing Price (USD)', fontweight='bold')
             st.pyplot(plt)
 
-        num_company = st.sidebar.slider('🔢 Number of Companies to Display', 1, len(selected_stocks), 5)
         
         if st.button('📊 Show Plots'):
             st.header('📌 Stock Closing Price')
