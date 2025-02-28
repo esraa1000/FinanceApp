@@ -49,7 +49,7 @@ def build_lstm_model(input_shape):
     """
     # Build the LSTM model
     model = Sequential()
-    model.add(LSTM(128, return_sequences=True, input_shape= (x_train.shape[1], 1)))
+    model.add(LSTM(128, return_sequences=True, input_shape= input_shape))
     model.add(LSTM(64, return_sequences=False))
     model.add(Dense(25))
     model.add(Dense(1))
@@ -76,8 +76,8 @@ def train_model(model, x_train, y_train, x_test, y_test, epochs=50, batch_size=3
         history = model.fit(
             x_train, y_train,
             validation_data=(x_test, y_test),
-            epochs=epochs,
-            batch_size=batch_size,
+            epochs= 1,
+            batch_size=1,
             verbose=1
         )
 
