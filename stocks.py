@@ -60,43 +60,41 @@ def build_lstm_model(input_shape):
 
     model.compile(optimizer='adam', loss='mean_squared_error')
     return model
-def train_model(model, x_train, y_train, x_val, y_val, epochs=50, batch_size=32):
+
+import numpy as np
+
+def train_model(model, x_train, y_train, x_test, y_test, epochs=50, batch_size=32):
     """
-    Train the LSTM model on stock data with validation.
+    Train the LSTM model on stock data.
     """
-    # Debugging: Print Shapes
-    print(f"x_train shape: {x_train.shape}, y_train shape: {y_train.shape}")
-    print(f"x_val shape: {x_val.shape}, y_val shape: {y_val.shape}")
+    try:
+        # Reshape x_train and x_test for LSTM input
+        print(f"Shape of x_train before reshaping: {x_train.shape}")
+        x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1)
+        x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1)
+        print(f"Shape of x_train after reshaping: {x_train.shape}")
 
-    # Check if data is empty
-    if x_train.shape[0] == 0 or x_val.shape[0] == 0:
-        raise ValueError("Training or validation data is empty! Check your dataset.")
+        # Train the model
+        history = model.fit(
+            x_train, y_train,
+            validation_data=(x_test, y_test),
+            epochs=epochs,
+            batch_size=batch_size,
+            verbose=1
+        )
 
-    # Ensure `x_train` is 3D
-    x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
-    x_val = np.reshape(x_val, (x_val.shape[0], x_val.shape[1], 1))
+        # Print final training and validation loss
+        final_train_loss = history.history['loss'][-1]
+        final_val_loss = history.history['val_loss'][-1]
 
-    # Ensure sizes match
-    assert x_train.shape[0] == y_train.shape[0], "Mismatch in training data size"
-    assert x_val.shape[0] == y_val.shape[0], "Mismatch in validation data size"
+        print(f"\n✅ Final Training Loss: {final_train_loss:.4f}")
+        print(f"✅ Final Validation Loss: {final_val_loss:.4f}")
 
-    history = model.fit(
-        x_train, y_train,
-        validation_data=(x_val, y_val),
-        epochs=epochs,
-        batch_size=batch_size,
-        verbose=1
-    )
+        return model, history
 
-    # Print final training and validation loss
-    final_train_loss = history.history['loss'][-1]
-    final_val_loss = history.history['val_loss'][-1]
-
-    print(f"\n✅ Final Training Loss: {final_train_loss:.4f}")
-    print(f"✅ Final Validation Loss: {final_val_loss:.4f}")
-
-    return model, history
-
+    except Exception as e:
+        print(f"Error during training: {e}")
+        raise
 
 def predict_stock(model, scaler, df_test, sequence_length=SEQUENCE_LENGTH):
     """
