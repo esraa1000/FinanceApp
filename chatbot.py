@@ -8,7 +8,7 @@ from stocks import build_lstm_model, preprocess_data, train_model, predict_stock
 import pandas as pd
 import matplotlib.pyplot as plt
 import yfinance as yf
-from tracker import add_transaction, get_balance, get_expenses, get_category_expenses, transactions
+from tracker import add_transaction, get_balance, get_expenses, get_category_expenses
 
 
 
