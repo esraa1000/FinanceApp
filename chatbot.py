@@ -8,7 +8,7 @@ from stocks import build_lstm_model, preprocess_data, train_model, predict_stock
 import pandas as pd
 import matplotlib.pyplot as plt
 import yfinance as yf
-from tracker import add_transaction, get_balance, get_expenses, transactions_list
+from tracker import add_transaction, get_balance, transactions_list
 
 
 
@@ -369,103 +369,48 @@ def stocks_user_page():
                 st.pyplot(plt)
 
 
-def get_expenses():
-    """✅ Get expenses directly from transactions_list"""
-    return [t for t in transactions_list if t.get("Type") == "Expense"]
-
-def get_category_expenses():
-    """✅ Get category-wise expenses"""
-    df = pd.DataFrame(get_expenses())
-    if not df.empty:
-        return df.groupby("Category")["Amount"].sum()
-    return None
 
 def tracker_page():
-    st.title("Finance Tracker")
+    st.title("💰 Finance Tracker")
 
-    # ✅ Transaction Input Section (Main Page)
+    # Input fields for transactions
     st.header("Add Transaction")
-    transaction_type = st.selectbox("Transaction Type", ["Income", "Expense"])
-    amount = st.number_input("Amount", min_value=0.0, format="%.2f")
-    category = st.selectbox("Category", ["Food", "Clothes", "Entertainment", "Other"])
-    description = st.text_input("Description")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        transaction_type = st.selectbox("Transaction Type", ["Income", "Expense"])
+        amount = st.number_input("Amount", min_value=0.0, format="%.2f")
 
+    with col2:
+        category = st.selectbox("Category", ["Food", "Clothes", "Entertainment", "Other"])
+        description = st.text_input("Description")
+
+    # Button to add transaction
     if st.button("Add Transaction"):
         add_transaction(transaction_type, amount, category, description)
         st.success("Transaction added!")
 
-    # ✅ Show transactions only when button is clicked
-    if st.button("Show Transactions"):
-        st.header("All Transactions")
-        expenses = get_expenses()
-        if expenses:
-            st.table(expenses)
-        else:
-            st.write("No transactions yet.")
+    # Button to show expenses
+    if "show_expenses" not in st.session_state:
+        st.session_state.show_expenses = False
 
-        # ✅ Show Expense Distribution Chart
-        st.header("Expenses")
+    if st.button("Show Expenses"):
+        st.session_state.show_expenses = True  # Show expenses when button is clicked
+
+    if st.session_state.show_expenses:
+        display_expenses()
+    
+    def display_expenses():
+        expenses = get_expenses() or []
+        
+        st.header("📊 All Transactions")
         if expenses:
             st.table(expenses)
-            
-            category_expenses = get_category_expenses()
-            if category_expenses is not None:
-                st.subheader("Expense Distribution by Category")
-                fig, ax = plt.subplots()
-                wedges, texts, autotexts = ax.pie(category_expenses, labels=category_expenses.index, autopct='%1.1f%%',
-                                                  startangle=90, wedgeprops={'edgecolor': 'white'}, pctdistance=0.85)
-                center_circle = plt.Circle((0, 0), 0.70, fc='white')
-                fig.gca().add_artist(center_circle)
-                ax.set_title("Expenses by Category")
-                st.pyplot(fig)
         else:
             st.write("No expenses recorded.")
 
-    # ✅ Show Balance
-    st.header("Balance")
-    st.write(f"Current Balance: ${get_balance():.2f}")
-
-# def tracker_page():
-#     st.title("💰 Finance Tracker")
-
-#     # Input fields for transactions
-#     st.header("Add Transaction")
-#     col1, col2 = st.columns(2)
-    
-#     with col1:
-#         transaction_type = st.selectbox("Transaction Type", ["Income", "Expense"])
-#         amount = st.number_input("Amount", min_value=0.0, format="%.2f")
-
-#     with col2:
-#         category = st.selectbox("Category", ["Food", "Clothes", "Entertainment", "Other"])
-#         description = st.text_input("Description")
-
-#     # Button to add transaction
-#     if st.button("Add Transaction"):
-#         add_transaction(transaction_type, amount, category, description)
-#         st.success("Transaction added!")
-
-#     # Button to show expenses
-#     if "show_expenses" not in st.session_state:
-#         st.session_state.show_expenses = False
-
-#     if st.button("Show Expenses"):
-#         st.session_state.show_expenses = True  # Show expenses when button is clicked
-
-#     if st.session_state.show_expenses:
-#         display_expenses()
-    
-#     def display_expenses():
-#         expenses = get_expenses() or []
-        
-#         st.header("📊 All Transactions")
-#         if expenses:
-#             st.table(expenses)
-#         else:
-#             st.write("No expenses recorded.")
-
-#         st.header("💵 Balance")
-#         st.write(f"Current Balance: **${get_balance():.2f}**")
+        st.header("💵 Balance")
+        st.write(f"Current Balance: **${get_balance():.2f}**")
 
 
 
