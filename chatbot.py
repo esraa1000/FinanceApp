@@ -267,8 +267,6 @@ def stocks_user_page():
                 plt.legend()
                 st.pyplot(plt)
 
-# Example usage
-stocks_user_page()
 
 
 

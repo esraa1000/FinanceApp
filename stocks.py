@@ -20,55 +20,33 @@ def load_stock_data(ticker, start="2020-01-01"):
     df = yf.download(ticker, start=start)
     return df[['Close']]  # Keep only closing price
 
+import numpy as np
+from sklearn.preprocessing import StandardScaler
 
-def preprocess_data(df, sequence_length=100):
-    """
-    Prepare stock price data for LSTM model training.
-
-    Args:
-        df (pd.DataFrame): Input DataFrame containing stock price data.
-        sequence_length (int): Length of the sequence for LSTM.
-
-    Returns:
-        x (np.array): Input sequences for the LSTM model.
-        y (np.array): Target values for the LSTM model.
-        scaler (MinMaxScaler): Scaler object for inverse transformation.
-
-    Raises:
-        ValueError: If the input DataFrame is empty, contains no numeric columns,
-                   or has insufficient rows for the specified sequence_length.
-    """
-    # Check if the DataFrame is empty
-    if df.empty:
-        raise ValueError("Input DataFrame is empty.")
-
-    # Check if the DataFrame contains numeric columns
-    if not any(df.dtypes.apply(lambda x: np.issubdtype(x, np.number))):
-        raise ValueError("Input DataFrame must contain numeric columns.")
-
-    # Check if the DataFrame has enough rows for the sequence_length
-    if len(df) < sequence_length:
-        raise ValueError(
-            f"Input DataFrame must have at least {sequence_length} rows. "
-            f"Current DataFrame has {len(df)} rows."
-        )
-
+def preprocess_data(df):
+    # Ensure the data is numeric
+    df = df.select_dtypes(include=['number'])
+    
+    # Check for missing values
+    if df.isnull().any().any():
+        df = df.fillna(df.mean())  # or another appropriate method to handle missing values
+    
     # Initialize the scaler
-    scaler = MinMaxScaler(feature_range=(0, 1))
-
-    # Scale the data
-    df_scaled = scaler.fit_transform(df)
-
-    # Prepare the training data
-    x, y = [], []
-    for i in range(sequence_length, len(df_scaled)):
-        x.append(df_scaled[i-sequence_length:i])
-        y.append(df_scaled[i, 0])  # Assuming the target is the first column
-
-    # Convert lists to numpy arrays
-    x = np.array(x)
-    y = np.array(y)
-
+    scaler = StandardScaler()
+    
+    # Fit and transform the data
+    try:
+        df_scaled = scaler.fit_transform(df)
+    except ValueError as e:
+        print(f"Error during scaling: {e}")
+        print(f"DataFrame content:\n{df}")
+        print(f"DataFrame shape: {df.shape}")
+        raise
+    
+    # Prepare the data for LSTM
+    x = df_scaled[:-1]
+    y = df_scaled[1:]
+    
     return x, y, scaler
 
 from keras.models import Sequential
