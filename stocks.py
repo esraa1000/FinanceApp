@@ -60,14 +60,29 @@ def build_lstm_model(input_shape):
 
     model.compile(optimizer='adam', loss='mean_squared_error')
     return model
-
 def train_model(model, x_train, y_train, x_val, y_val, epochs=50, batch_size=32):
     """
     Train the LSTM model on stock data with validation.
     """
+    # Debugging: Print Shapes
+    print(f"x_train shape: {x_train.shape}, y_train shape: {y_train.shape}")
+    print(f"x_val shape: {x_val.shape}, y_val shape: {y_val.shape}")
+
+    # Check if data is empty
+    if x_train.shape[0] == 0 or x_val.shape[0] == 0:
+        raise ValueError("Training or validation data is empty! Check your dataset.")
+
+    # Ensure `x_train` is 3D
+    x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
+    x_val = np.reshape(x_val, (x_val.shape[0], x_val.shape[1], 1))
+
+    # Ensure sizes match
+    assert x_train.shape[0] == y_train.shape[0], "Mismatch in training data size"
+    assert x_val.shape[0] == y_val.shape[0], "Mismatch in validation data size"
+
     history = model.fit(
         x_train, y_train,
-        validation_data=(x_val, y_val),  # Use validation data
+        validation_data=(x_val, y_val),
         epochs=epochs,
         batch_size=batch_size,
         verbose=1
@@ -81,6 +96,7 @@ def train_model(model, x_train, y_train, x_val, y_val, epochs=50, batch_size=32)
     print(f"✅ Final Validation Loss: {final_val_loss:.4f}")
 
     return model, history
+
 
 def predict_stock(model, scaler, df_test, sequence_length=SEQUENCE_LENGTH):
     """
