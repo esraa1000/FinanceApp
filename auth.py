@@ -33,6 +33,8 @@ if 'signedout' not in st.session_state:
     st.session_state.signedout = False
 if 'signout' not in st.session_state:
     st.session_state.signout = False
+if 'account_type' not in st.session_state:  # Add account type to session state
+    st.session_state.account_type = 'individual'
 
 async def get_access_token(client: GoogleOAuth2, redirect_url: str, code: str):
     return await client.get_access_token(code, redirect_url)
@@ -78,6 +80,7 @@ def get_logged_in_user_email():
                         user_exists = True
                         user_data = doc.to_dict()
                         st.session_state.username = user_data.get('username', '')
+                        st.session_state.account_type = user_data.get('account_type', 'individual')  # Set account type
                         break
                     
                     if user_exists:
@@ -104,6 +107,7 @@ def get_logged_in_user_email():
                             db.collection('users').document(user.uid).set({
                                 'email': user_email,
                                 'username': suggested_username,
+                                'account_type': 'individual',  # Default to individual for Google signup
                                 'created_with_google': True
                             })
                             
@@ -149,6 +153,7 @@ def app():
                 st.session_state.useremail = ''
                 st.session_state.signout = False
                 st.session_state.signedout = False
+                st.session_state.account_type = 'individual'  # Reset account type
                 st.rerun()
 
         if not st.session_state['signedout']:
@@ -189,6 +194,7 @@ def app():
                             st.session_state.email = email
                             st.session_state.signout = True
                             st.session_state.signedout = True
+                            st.session_state.account_type = user_data.get('account_type', 'individual')  # Set account type
                             break
                     
                     if not user_found:
@@ -200,6 +206,7 @@ def app():
             email = st.text_input("Email")
             password = st.text_input("Password", type='password')
             username = st.text_input("Enter your unique username")
+            account_type = st.radio("Account Type", ["Individual", "Company"])  # Add account type selection
             if st.button("Create my account"):
                 if email and password and username:  # Make sure all fields are filled
                     try:
@@ -219,6 +226,7 @@ def app():
                                 'email': email,
                                 'username': username,
                                 'password': hashed_password,
+                                'account_type': account_type.lower(),  # Store account type
                                 'created_with_google': False
                             })
                             st.success("User created successfully!")
@@ -236,6 +244,7 @@ def app():
                 st.session_state.username = ''
                 st.session_state.email = ''
                 st.session_state.useremail = ''
+                st.session_state.account_type = 'individual'  # Reset account type
                 st.rerun()
     except AttributeError as e:
         st.error(f"Your session has timed out. Please log in again. Error: {e}")
@@ -245,4 +254,5 @@ def app():
         st.session_state.useremail = ''
         st.session_state.signout = False
         st.session_state.signedout = False
+        st.session_state.account_type = 'individual'  # Reset account type
         st.rerun()
