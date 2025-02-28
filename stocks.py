@@ -113,7 +113,8 @@ def predict_stock(model, scaler, df_test, sequence_length=SEQUENCE_LENGTH):
         # Inverse transform the predictions to original scale
         predictions = scaler.inverse_transform(predictions)
         
-        return predictions.flatten()
+        # Return predictions and corresponding dates
+        return df_test.index[sequence_length:], predictions.flatten()
     
     except Exception as e:
         print(f"Error during prediction: {e}")

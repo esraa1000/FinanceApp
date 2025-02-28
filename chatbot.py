@@ -256,7 +256,9 @@ def stocks_user_page():
         if st.button('📈 Show Predictions'):
             st.header('🔮 Stock Price Predictions')
             for i in selected_stocks[:num_company]:
-                dates, actual, predicted = get_predictions(i)
+                dates, predicted = get_predictions(i)
+                actual = data[i]['Close'].values[-len(predicted):]  # Slice actual prices to match predictions
+                
                 plt.figure(figsize=(10, 5))
                 plt.plot(dates, actual, label="Actual Prices", color='blue')
                 plt.plot(dates, predicted, label="Predicted Prices", color='red', linestyle='dashed')
@@ -266,7 +268,6 @@ def stocks_user_page():
                 plt.title(f"Predicted vs. Actual: {i}")
                 plt.legend()
                 st.pyplot(plt)
-
 
 
 
