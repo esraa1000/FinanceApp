@@ -211,7 +211,7 @@ def preprocess_data(stock_data, seq_length=60):
     Preprocess stock data: Normalize, create sequences, and split into training/testing sets.
     """
     scaler = MinMaxScaler(feature_range=(0,1))
-    scaled_data = scaler.fit_transform(stock_data[['Adj Close']])
+    scaled_data = scaler.fit_transform(stock_data[['Close']])
 
     # Split data
     train_size = int(len(scaled_data) * 0.8)
