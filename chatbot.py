@@ -2,12 +2,14 @@ from dataclasses import dataclass
 from typing import Literal
 import streamlit as st
 from models import give_personal_advice
-from company import give_company_advice
+#from company import give_company_advice
 import streamlit.components.v1 as components
 from stocks import build_lstm_model, preprocess_data, train_model, predict_stock
 import pandas as pd
 import matplotlib.pyplot as plt
 import yfinance as yf
+from tracker import add_transaction, get_balance, get_expenses, get_category_expenses, transactions
+
 
 
 
@@ -127,7 +129,7 @@ def chatbot_company_page():
         human_prompt = st.session_state.human_prompt
         if human_prompt.strip():  # Check if the input is not empty
             # Generate AI response using personal financial advice function
-            ai_response = give_company_advice(human_prompt)
+            ai_response = give_personal_advice(human_prompt)
 
             # Append the conversation to the history
             st.session_state.history.append(Message("human", human_prompt))
@@ -368,9 +370,56 @@ def stocks_user_page():
 
 
 def tracker_page():
-    st.title("Tracker")
-    st.write("Welcome to the Tracker page!")
-    # Add your tracker code here
+    st.title("Finance Tracker")
+
+    st.sidebar.header("Add Transaction")
+    transaction_type = st.sidebar.selectbox("Transaction Type", ["Income", "Expense"])
+    amount = st.sidebar.number_input("Amount", min_value=0.0, format="%.2f")
+    category = st.sidebar.selectbox("Category", ["Food", "Clothes", "Entertainment", "Other"])
+    description = st.sidebar.text_input("Description")
+    if st.sidebar.button("Add Transaction"):
+        add_transaction(transaction_type, amount, category, description)
+        st.sidebar.success("Transaction added!")
+
+    st.header("All Transactions")
+    expenses = get_expenses()
+    if expenses:
+        st.table(expenses)
+    else:
+        st.write("No transactions yet.")
+
+    st.header("Expenses")
+    if expenses:
+        st.table(expenses)
+        
+        # Get expense distribution
+        category_expenses = get_category_expenses()
+        if category_expenses is not None:
+            st.subheader("Expense Distribution by Category")
+            fig, ax = plt.subplots()
+            wedges, texts, autotexts = ax.pie(category_expenses, labels=category_expenses.index, autopct='%1.1f%%', startangle=90, wedgeprops={'edgecolor': 'white'}, pctdistance=0.85)
+            center_circle = plt.Circle((0, 0), 0.70, fc='white')
+            fig.gca().add_artist(center_circle)
+            ax.set_title("Expenses by Category")
+            st.pyplot(fig)
+            
+            # Individual category doughnuts
+            for category in ["Food", "Clothes", "Entertainment", "Other"]:
+                category_data = [t for t in expenses if t["Category"] == category]
+                if category_data:
+                    st.subheader(f"{category} Expenses")
+                    fig, ax = plt.subplots()
+                    df = pd.DataFrame(category_data)
+                    wedges, texts, autotexts = ax.pie(df["Amount"], labels=df["Description"], autopct='%1.1f%%', startangle=90, wedgeprops={'edgecolor': 'white'}, pctdistance=0.85)
+                    center_circle = plt.Circle((0, 0), 0.70, fc='white')
+                    fig.gca().add_artist(center_circle)
+                    ax.set_title(f"{category} Expense Breakdown")
+                    st.pyplot(fig)
+    else:
+        st.write("No expenses recorded.")
+
+    st.header("Balance")
+    st.write(f"Current Balance: ${get_balance():.2f}")
 
 def news_page():
     st.title("News")
