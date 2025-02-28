@@ -120,6 +120,49 @@ def predict_stock(model, scaler, df_test, sequence_length=SEQUENCE_LENGTH):
         print(f"Error during prediction: {e}")
         raise
 
+def get_predictions(symbol):
+    """
+    Fetch data, preprocess, and make predictions for a given stock symbol.
+    """
+    try:
+        # Fetch data for the selected symbol
+        df_stock = pd.DataFrame(data[symbol].Close).dropna()
+        
+        # Check if there's enough data for predictions
+        if len(df_stock) < SEQUENCE_LENGTH:
+            raise ValueError(f"Not enough data for {symbol}. Need at least {SEQUENCE_LENGTH} rows.")
+        
+        # Preprocess the data
+        df_scaled = scaler.transform(df_stock[['Close']])
+        
+        # Prepare the input data for the LSTM model
+        x_test = []
+        for i in range(len(df_scaled) - SEQUENCE_LENGTH):
+            x_test.append(df_scaled[i:i + SEQUENCE_LENGTH])
+        
+        x_test = np.array(x_test)
+        
+        # Debugging: Print the shape of x_test
+        print(f"Shape of x_test for {symbol}: {x_test.shape}")
+        
+        if x_test.shape[0] == 0:
+            raise ValueError(f"No valid sequences for {symbol}. Check the sequence length or data.")
+        
+        # Make predictions
+        predictions = model.predict(x_test)
+        
+        # Inverse transform the predictions to original scale
+        predictions = scaler.inverse_transform(predictions)
+        
+        # Get corresponding dates
+        dates = df_stock.index[SEQUENCE_LENGTH:]
+        
+        return dates, predictions.flatten()
+    
+    except Exception as e:
+        print(f"Error during prediction for {symbol}: {e}")
+        return None, None
+
 def plot_predictions(actual, predicted):
     """
     Plot actual vs. predicted stock prices.

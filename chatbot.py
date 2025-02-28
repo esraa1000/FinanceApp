@@ -259,6 +259,11 @@ def stocks_user_page():
                 dates, predicted = get_predictions(i)
                 actual = data[i]['Close'].values[-len(predicted):]  # Slice actual prices to match predictions
                 
+                if dates is None or predicted is None:
+                    st.error(f"Failed to generate predictions for {i}. Please check the data.")
+                    continue
+                
+                
                 plt.figure(figsize=(10, 5))
                 plt.plot(dates, actual, label="Actual Prices", color='blue')
                 plt.plot(dates, predicted, label="Predicted Prices", color='red', linestyle='dashed')
