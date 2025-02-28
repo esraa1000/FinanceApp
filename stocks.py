@@ -206,29 +206,45 @@ def load_stock_data(ticker, start, end):
     stock = yf.download(ticker, start=start, end=end)
     return stock
 
-def preprocess_data(stock_data, seq_length=60):
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+
+def preprocess_data(df, sequence_length=30):
     """
-    Preprocess stock data: Normalize, create sequences, and split into training/testing sets.
+    Preprocess stock data for LSTM.
     """
-    scaler = MinMaxScaler(feature_range=(0,1))
-    scaled_data = scaler.fit_transform(stock_data[['Close']])
-
-    # Split data
-    train_size = int(len(scaled_data) * 0.8)
-    train_data, test_data = scaled_data[:train_size], scaled_data[train_size:]
-
-    # Function to create sequences
-    def create_sequences(data):
-        X, y = [], []
-        for i in range(len(data) - seq_length):
-            X.append(data[i:i+seq_length])
-            y.append(data[i+seq_length])
-        return np.array(X), np.array(y)
-
-    X_train, y_train = create_sequences(train_data)
-    X_test, y_test = create_sequences(test_data)
-
-    return X_train, y_train, X_test, y_test, scaler
+    try:
+        # Ensure the data is numeric
+        df = df.select_dtypes(include=['number'])
+        
+        # Check for missing values
+        if df.isnull().any().any():
+            df = df.fillna(df.mean())  # Fill missing values with the mean
+        
+        # Initialize the scaler
+        scaler = StandardScaler()
+        df_scaled = scaler.fit_transform(df)
+        
+        # Prepare sequences for LSTM
+        x, y = [], []
+        for i in range(len(df_scaled) - sequence_length):
+            x.append(df_scaled[i:i + sequence_length])
+            y.append(df_scaled[i + sequence_length])
+        
+        x = np.array(x)
+        y = np.array(y)
+        
+        # Debugging: Print the shape of x and y
+        print(f"Shape of x: {x.shape}")
+        print(f"Shape of y: {y.shape}")
+        
+        return x, y, scaler
+    
+    except Exception as e:
+        print(f"Error during preprocessing: {e}")
+        print(f"DataFrame content:\n{df}")
+        print(f"DataFrame shape: {df.shape}")
+        raise
 
 def build_lstm_model(input_shape):
     """

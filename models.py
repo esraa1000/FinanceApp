@@ -72,17 +72,17 @@
 #     personal_memory.save_context({"query": query}, {"response": response.content})
 #     return response.content
 
-# def give_company_advice(query, stock_symbol=None):
-#     """Returns financial advice based on user query and optional stock data."""
-#     live_data = get_live_financial_data(stock_symbol) if stock_symbol else "No stock symbol provided."
-#     prompt = company_advice_prompt.format(
-#         query=query,
-#         chat_history=company_memory.load_memory_variables({}).get("chat_history", ""),
-#         live_data=live_data
-#     )
-#     response = company_model.invoke(prompt)
-#     company_memory.save_context({"query": query}, {"response": response.content})
-#     return response.content
+def give_company_advice(query, stock_symbol=None):
+    """Returns financial advice based on user query and optional stock data."""
+    live_data = get_live_financial_data(stock_symbol) if stock_symbol else "No stock symbol provided."
+    prompt = company_advice_prompt.format(
+        query=query,
+        chat_history=company_memory.load_memory_variables({}).get("chat_history", ""),
+        live_data=live_data
+    )
+    response = company_model.invoke(prompt)
+    company_memory.save_context({"query": query}, {"response": response.content})
+    return response.content
 
 
 

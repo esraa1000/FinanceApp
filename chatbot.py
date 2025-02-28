@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Literal
 import streamlit as st
-from models import give_personal_advice
+from models import give_personal_advice, give_company_advice
 import streamlit.components.v1 as components
 from stocks import build_lstm_model, preprocess_data, train_model, predict_stock
 import pandas as pd
@@ -11,7 +11,7 @@ import yfinance as yf
 
 
 
-def chatbot_page():
+def chatbot_user_page():
     
     @dataclass
     class Message:
@@ -34,6 +34,99 @@ def chatbot_page():
         if human_prompt.strip():  # Check if the input is not empty
             # Generate AI response using personal financial advice function
             ai_response = give_personal_advice(human_prompt)
+
+            # Append the conversation to the history
+            st.session_state.history.append(Message("human", human_prompt))
+            st.session_state.history.append(Message("ai", ai_response))
+
+            # Clear the input field
+            st.session_state.human_prompt = ""
+
+    
+      # Load CSS and initialize session state
+    load_css()
+    initialize_session_state()
+
+  # UI Components
+    st.title("Ask Mahmoud 🤖")
+
+    chat_placeholder = st.container()
+    prompt_placeholder = st.form("chat-form")
+
+    with chat_placeholder:
+        for chat in st.session_state.history:
+            st.markdown(
+                f'<div class="chat-row {"" if chat.origin == "ai" else "row-reverse"}">'
+                f'<div class="chat-bubble {"ai-bubble" if chat.origin == "ai" else "human-bubble"}">'
+                f'{chat.message}'
+                f'</div>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+
+    with prompt_placeholder:
+        st.markdown("**Chat**")
+        cols = st.columns((6, 1))
+        cols[0].text_input(
+            "Chat",
+            value=st.session_state.get("human_prompt", ""),  # Bind to session state
+            label_visibility="collapsed",
+            key="human_prompt",
+        )
+        cols[1].form_submit_button(
+            "Submit", 
+            type="primary", 
+            on_click=on_click_callback, 
+        )
+
+    # JavaScript for handling Enter key
+    components.html("""
+    <script>
+    const streamlitDoc = window.parent.document;
+
+    const buttons = Array.from(
+        streamlitDoc.querySelectorAll('.stButton > button')
+    );
+    const submitButton = buttons.find(
+        el => el.innerText === 'Submit'
+    );
+
+    streamlitDoc.addEventListener('keydown', function(e) {
+        switch (e.key) {
+            case 'Enter':
+                submitButton.click();
+                break;
+        }
+    });
+    </script>
+    """, 
+        height=0,
+        width=0,
+    )
+
+def chatbot_company_page():
+    
+    @dataclass
+    class Message:
+      """Class for keeping track of a chat message."""
+      origin: Literal["human", "ai"]
+      message: str
+
+    def load_css():
+      with open("static/styles.css", "r") as f:
+          css = f"<style>{f.read()}</style>"
+          st.markdown(css, unsafe_allow_html=True)
+
+    def initialize_session_state():
+        if "history" not in st.session_state:
+            st.session_state.history = []
+        if "context" not in st.session_state:
+            st.session_state.context = None  # Can be "personal" or "company"
+    def on_click_callback():
+        human_prompt = st.session_state.human_prompt
+        if human_prompt.strip():  # Check if the input is not empty
+            # Generate AI response using personal financial advice function
+            ai_response = give_company_advice(human_prompt)
 
             # Append the conversation to the history
             st.session_state.history.append(Message("human", human_prompt))
@@ -285,7 +378,7 @@ def news_page():
 
 # Initialize session state for page navigation
 if "page" not in st.session_state:
-    st.session_state.page = "Chatbot"
+    st.session_state.page = "Chatbot_User"
 
 # Custom CSS for the sidebar navigation
 st.markdown("""
@@ -317,7 +410,9 @@ st.markdown("""
 with st.sidebar:
     st.title("Navigation")
     if st.button("🗨️ Chatbot"):
-        st.session_state.page = "Chatbot"
+        st.session_state.page = "Chatbot_User"
+    if st.button("🗨️ Chatbot (Company)"):
+        st.session_state.page = "Chatbot_Company"
     if st.button("📈 Stocks (Company)"):
         st.session_state.page = "Company_Stocks"
     if st.button("📈 Stocks (User)"):
@@ -328,8 +423,10 @@ with st.sidebar:
         st.session_state.page = "News"
 
 # Display the selected page
-if st.session_state.page == "Chatbot":
-    chatbot_page()
+if st.session_state.page == "Chatbot_User":
+    chatbot_user_page()
+if st.session_state.page == "Chatbot_Company":
+    chatbot_company_page()
 elif st.session_state.page == "Company_Stocks":
     stocks_company_page()
 elif st.session_state.page == "User_Stocks":
