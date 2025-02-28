@@ -16,3 +16,6 @@ pillow
 datetime
 numpy
 PyPDF2
+firebase-admin
+httpx-oauth
+asyncio
