@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Literal
 import streamlit as st
-from models import give_personal_advice, give_company_advice  
+from models import give_personal_advice
 import streamlit.components.v1 as components
 from stocks import build_lstm_model, preprocess_data, train_model, predict_stock
 import pandas as pd
