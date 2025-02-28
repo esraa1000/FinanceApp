@@ -1,6 +1,6 @@
 google-generativeai
-faiss-cpu
 langchain
+faiss-cpu
 langchain-google-genai
 pandas
 matplotlib
