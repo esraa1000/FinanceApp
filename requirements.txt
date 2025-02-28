@@ -14,3 +14,4 @@ langchain-core
 pillow
 datetime
 numpy
+PyPDF2
