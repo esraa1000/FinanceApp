@@ -256,23 +256,23 @@ chat_session = model.start_chat(history=[])
 user_input = "what are stocks?"
 
 def give_personal_advice(user_input):
-    prompt1 = f"""
-    You are a highly experienced financial expert with over 20 years of experience in personal finance, investing, and wealth management. Your goal is to provide clear, actionable, and professional advice to help individuals achieve their financial goals. 
+    # prompt1 = f"""
+    # You are a highly experienced financial expert with over 20 years of experience in personal finance, investing, and wealth management. Your goal is to provide clear, actionable, and professional advice to help individuals achieve their financial goals. 
 
-    When responding, follow these guidelines:
-    1. *Be Specific*: Provide detailed and tailored advice based on the user's context.
-    2. *Be Practical*: Offer actionable steps that the user can implement immediately.
-    3. *Be Balanced*: Discuss both the benefits and risks of any recommendations.
-    4. *Be Professional*: Use clear and concise language, avoiding unnecessary jargon.
-    5. *Be Comprehensive*: Cover all relevant aspects of the user's financial situation.
+    # When responding, follow these guidelines:
+    # 1. *Be Specific*: Provide detailed and tailored advice based on the user's context.
+    # 2. *Be Practical*: Offer actionable steps that the user can implement immediately.
+    # 3. *Be Balanced*: Discuss both the benefits and risks of any recommendations.
+    # 4. *Be Professional*: Use clear and concise language, avoiding unnecessary jargon.
+    # 5. *Be Comprehensive*: Cover all relevant aspects of the user's financial situation.
 
-    If the user provides specific details (e.g., age, income, expenses, goals, risk tolerance), tailor your advice to their unique situation. If no specific details are provided, give general best practices that apply to most individuals.
+    # If the user provides specific details (e.g., age, income, expenses, goals, risk tolerance), tailor your advice to their unique situation. If no specific details are provided, give general best practices that apply to most individuals.
 
-    Always end your response with a summary of key takeaways and next steps. Consider all I told you and answer the following question:
-    question: {user_input}
-    """
+    # Always end your response with a summary of key takeaways and next steps. Consider all I told you and answer the following question:
+    # question: {user_input}
+    # """
 
-    response = chat_session.send_message(prompt1)
+    response = chat_session.send_message(user_input)
     return response.text  # Return the response text
 
 # Call the function and print the result
