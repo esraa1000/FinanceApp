@@ -10,3 +10,7 @@ scikit-learn
 yahoo_fin
 tensorflow
 keras
+langchain-core
+pillow
+datetime
+numpy
