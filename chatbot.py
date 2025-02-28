@@ -145,14 +145,19 @@ def stocks_company_page():
 
             # Plot stock prices
             st.write("### Stock Closing Price Over Time")
-            plt.figure(figsize=(10,5))
-            plt.plot(df.index, df['Close'], label="Closing Price", color='blue')
-            plt.xlabel('Date')
-            plt.ylabel('Closing Price')
-            plt.title('Stock Closing Prices')
-            plt.legend()
-            st.pyplot()
+            # Create a figure and axis
+            fig, ax = plt.subplots(figsize=(10,5))
 
+            # Plot stock prices
+            ax.plot(df.index, df[close_column], label="Closing Price", color='blue')
+
+            ax.set_xlabel('Date')
+            ax.set_ylabel('Closing Price')
+            ax.set_title('Stock Closing Prices')
+            ax.legend()
+
+            # Pass fig to st.pyplot()
+            st.pyplot(fig)
             # Preprocess data
             sequence_length = 100
             x_train, y_train, scaler = preprocess_data(df.iloc[:-sequence_length])
