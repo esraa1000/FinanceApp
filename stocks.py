@@ -70,8 +70,8 @@ def train_model(model, x_train, y_train, x_test, y_test, epochs=50, batch_size=3
     try:
         # Reshape x_train and x_test for LSTM input
         print(f"Shape of x_train before reshaping: {x_train.shape}")
-        x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1)
-        x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1)
+        x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
+        x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
         print(f"Shape of x_train after reshaping: {x_train.shape}")
 
         # Train the model
