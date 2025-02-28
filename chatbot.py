@@ -192,8 +192,6 @@ def stocks_company_page():
             st.write(f"### Predicted Next Closing Price: **${predicted_prices[-1]:.2f}**")
 
 
-
-
 def stocks_user_page():
     st.title('📈 Multicompany Stock Analysis & Prediction')
 
@@ -246,12 +244,12 @@ def stocks_user_page():
             x_train, y_train, scaler = preprocess_data(df_train)
             x_test, y_test, _ = preprocess_data(df_test)
 
-            model = build_lstm_model(input_shape=(x_train.shape[1], 1))
+            model = build_lstm_model(input_shape=(x_train.shape[1], x_train.shape[2]))
             trained_model, history = train_model(model, x_train, y_train, x_test, y_test)
 
-            predictions = predict_stock(trained_model, scaler, df_test)
+            dates, predicted = predict_stock(trained_model, scaler, df_test)
 
-            return df_test.index, df_test['Close'].values, predictions
+            return dates, predicted
 
         if st.button('📈 Show Predictions'):
             st.header('🔮 Stock Price Predictions')
@@ -263,7 +261,6 @@ def stocks_user_page():
                     st.error(f"Failed to generate predictions for {i}. Please check the data.")
                     continue
                 
-                
                 plt.figure(figsize=(10, 5))
                 plt.plot(dates, actual, label="Actual Prices", color='blue')
                 plt.plot(dates, predicted, label="Predicted Prices", color='red', linestyle='dashed')
@@ -273,7 +270,6 @@ def stocks_user_page():
                 plt.title(f"Predicted vs. Actual: {i}")
                 plt.legend()
                 st.pyplot(plt)
-
 
 
 def tracker_page():
